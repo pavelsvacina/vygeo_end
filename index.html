@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Orthomosaic</title>
+    <meta charset="utf-8" />
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(210, 180, 140, 0.75);
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            z-index: 1000;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+        header h2 {
+            margin: 5px 0 0 0;
+            font-size: 18px;
+            color: #666;
+        }
+    </style>
+
+    <!-- Načítání knihovny Leaflet -->
+    <link rel="stylesheet" href="leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Ortofoto</h1>
+        <h2>Fort č. II Radíkov</h2>
+    </header>
+    <div id="map"></div>
+    
+    <script>
+        // Inicializace mapy pomocí Leaflet
+        var map = L.map('map', {
+        maxZoom: 23 // Nastavení maximálního zoomu na 23
+         }).setView([49.6433, 17.3697], 16);
+
+        // Nastavení Esri World Imagery jako výchozí podkladové mapy
+        var Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        }).addTo(map);
+
+        // Definice Ortofoto vrstvy
+        var imageMapLayer = L.tileLayer('https://gis.upol.cz/koutnik/{z}/{x}/{y}.png', {
+            minZoom: 15,
+            maxZoom: 23,
+            attribution: 'Koutnik a spol.'
+        }).addTo(map); // Ortofoto zapnuto
+
+        // Definice cyklotrasy
+        var line = {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [17.3715561, 49.6417214],
+                    [17.3712900, 49.6421133],
+                    [17.3707686, 49.6423494],
+                    [17.3714117, 49.6431647],
+                    [17.3702400, 49.6441944],
+                    [17.3684869, 49.6443431]
+                ]
+            },
+            "properties": {
+                "name": "Cyklotrasy"
+            }
+        };
+
+        var lineLayer = L.geoJSON(line, {
+            style: {
+                color: "#1E90FF",
+                weight: 4,
+                opacity: 0.8
+            }
+        }).addTo(map); // Cyklotrasa zapnuta
+
+        // Přidání markeru
+        var markerLayer = L.layerGroup([
+            L.marker([49.6418761, 17.3680958]).bindPopup('<b>Vysílač Radíkov</b>')
+        ]).addTo(map); // Marker zapnut
+
+        // Definice dalších podkladových vrstev
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom:  23,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+
+        var grayscaleLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+            maxZoom: 23
+        });
+
+        // Nastavení kontrol vrstev
+        var baseLayers = {
+            "Esri World Imagery": Esri_WorldImagery,
+            "OpenStreetMap": osmLayer,
+            "Grayscale": grayscaleLayer
+        };
+
+        var overlayLayers = {
+            "Ortofoto Fort č. II Radíkov": imageMapLayer,
+            "Cyklotrasy": lineLayer,
+            "Marker Vysílač Radíkov": markerLayer
+        };
+
+        // Přidání přepínače vrstev a měřítka
+        L.control.layers(baseLayers, overlayLayers, { collapsed: true }).addTo(map);
+        L.control.scale().addTo(map);
+    </script>
+</body>
+</html>
+
